@@ -18,25 +18,28 @@ public class LoginFilter implements Filter {
 
     @Override
     public void handle(Request req, Response response) throws Exception {
+        System.out.println("-----" + req.pathInfo());
         if (!req.pathInfo().equals("/login-form.html") &&
         !req.pathInfo().equals("/login") &&
         !req.pathInfo().equals("/register") &&
-        !req.pathInfo().equals("/register.html")
-        ) {
+        !req.pathInfo().equals("/register.html") &&
+        !req.pathInfo().equals("/favicon.ico")) {
+            
+            System.out.println("=====" + req.pathInfo());
             logger.info("Request is NOT login/registration");
             if (req.session(false) == null) {
 //                logger.info
-System.err.println("Not logged in - redirecting!");
+                System.err.println("Not logged in - redirecting!");
                 response.redirect("/login-form.html");
             } else {
 //                logger.info
-System.err.println("Logged in!");
+                System.err.println("Logged in!");
                 req.attribute("user", req.session().attribute("user"));
             }
 
         } else {
 //            logger.info
-System.err.println("Request is LOGIN FORM");
+//System.err.println("Request is LOGIN FORM");
         }
         
     }

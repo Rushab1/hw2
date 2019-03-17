@@ -19,9 +19,15 @@ public class LoginHandler implements Route {
         String user = req.queryParams("username");
         String pass = req.queryParams("password");
         
-        System.err.println("Login request for " + user + " and " + pass);
+        try{
+            System.err.println("Login request for " + user + " and " + pass);
+            System.out.println(db.getSessionForUser(user, pass));
+        }
+        catch(Exception e){
+            System.out.println("EXception in LoginHandler-1: " + e);
+        }
         if (db.getSessionForUser(user, pass)) {
-            System.err.println("Logged in!");
+            System.out.println("Logged in!");
             Session session = req.session();
             
             session.attribute("user", user);
@@ -31,7 +37,6 @@ public class LoginHandler implements Route {
             System.err.println("Invalid credentials");
             resp.redirect("/login-form.html");
         }
-
             
         return "";
     }

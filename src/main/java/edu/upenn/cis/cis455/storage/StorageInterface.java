@@ -1,7 +1,6 @@
 package edu.upenn.cis.cis455.storage;
 
 public interface StorageInterface {
-    
     /**
      * How many documents so far?
      */

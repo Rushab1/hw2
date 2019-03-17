@@ -9,6 +9,7 @@ import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import edu.upenn.cis.cis455.crawler.handlers.LoginHandler;
+import edu.upenn.cis.cis455.crawler.handlers.RegisterHandler;
 
 public class WebInterface {
     public static void main(String args[]) {
@@ -40,8 +41,14 @@ public class WebInterface {
         before("/*", "POST", testIfLoggedIn);
         // TODO:  add /register, /logout, /index.html, /, /lookup
         //post("/register", new RegistrationHandler(database));
+        System.out.println(database);
         post("/login", new LoginHandler(database));
         
+        post("/register", "POST", new RegisterHandler(database));
+
+
+
+//        post("/register", "GET", new RegisterHandler(database));
         awaitInitialization();
     }
 }
