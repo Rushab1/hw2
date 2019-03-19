@@ -1,5 +1,7 @@
 package edu.upenn.cis.cis455.storage;
 
+import com.sleepycat.persist.EntityStore;
+
 public interface StorageInterface {
     /**
      * How many documents so far?
@@ -40,4 +42,9 @@ public interface StorageInterface {
 	 * Shuts down / flushes / closes the storage system
 	 */
 	public void close();
+	
+	public EntityStore getSeenStore();
+	
+	public EntityStore getCrawlStore();
+	
 }

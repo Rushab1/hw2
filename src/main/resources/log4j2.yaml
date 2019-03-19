@@ -6,10 +6,40 @@ Configuration:
       name: Console
       target: SYSTEM_OUT
       PatternLayout:
-        Pattern: "%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"
-
+        Pattern: "[%t] %-5level - %msg%n"
+        
+    File:
+      name: File_Appender
+      fileName: logfile.log
+      PatternLayout:
+        pattern: "%c{1} - %msg%n"
+ 
+    RollingFile:
+      - name: RollingFile_Appender
+        fileName: rollingfile.log
+        filePattern: "logs/archive/rollingfile.log.%d{yyyy-MM-dd-hh-mm}.gz"
+        PatternLayout:
+          pattern: "[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n"
+        Policies:
+          SizeBasedTriggeringPolicy:
+            size: 1 KB
+        DefaultRollOverStrategy:
+          max: 30
+          
   Loggers:
     Root:
-      level: error
+      level: info
       AppenderRef:
         ref: Console
+        ref: File_Appender
+        
+      level: error
+      AppenderRef:
+        ref: File_Appender
+        ref: Console
+      
+      level: warn
+      AppenderRef:
+        ref: File_Appender
+        ref: Console
+        

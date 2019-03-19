@@ -18,7 +18,7 @@ public interface CrawlMaster {
      * Returns true if it's permissible to fetch the content,
      * eg that it satisfies the path restrictions from robots.txt
      */
-    public boolean isOKtoParse(URLInfo url);
+    public boolean isOKtoParse(URLInfo url, String protocol);
     
     /**
      * Returns true if the document content looks worthy of indexing,
@@ -46,5 +46,7 @@ public interface CrawlMaster {
      * Workers should call this when they exit, so the master
      * knows when it can shut down
      */
-    public void notifyThreadExited();
+    public void notifyThreadExited(CrawlWorker worker);
+    
+    public Long getStartTime();
 }

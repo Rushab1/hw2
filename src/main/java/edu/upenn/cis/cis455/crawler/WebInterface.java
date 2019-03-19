@@ -5,16 +5,21 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static spark.Spark.*;
+
+import edu.upenn.cis.cis455.crawler.handlers.IndexHandler;
 import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import edu.upenn.cis.cis455.crawler.handlers.LoginHandler;
 import edu.upenn.cis.cis455.crawler.handlers.RegisterHandler;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class WebInterface {
+    final static Logger logger = LogManager.getLogger(WebInterface.class);
     public static void main(String args[]) {
         if (args.length < 1 || args.length > 2) {
-            System.out.println("Syntax: WebInterface {path} {root}");
+            logger.info("Syntax: WebInterface {path} {root}");
             System.exit(1);
         }
         
@@ -40,15 +45,16 @@ public class WebInterface {
             
         before("/*", "POST", testIfLoggedIn);
         // TODO:  add /register, /logout, /index.html, /, /lookup
-        //post("/register", new RegistrationHandler(database));
-        System.out.println(database);
+        logger.info("Using Database Directory: " + database);
         post("/login", new LoginHandler(database));
-        
         post("/register", "POST", new RegisterHandler(database));
-
-
-
-//        post("/register", "GET", new RegisterHandler(database));
+        get("/index.html", new IndexHandler());
+        get("/closeDB", "GET", (request, response)->{
+                                database.close(); 
+                                String resp = new String("Database Closed");
+                                return resp;
+                                }
+                                );
         awaitInitialization();
     }
 }

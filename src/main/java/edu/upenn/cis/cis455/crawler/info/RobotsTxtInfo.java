@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class RobotsTxtInfo {
-	
 	private HashMap<String,ArrayList<String>> disallowedLinks;
 	private HashMap<String,ArrayList<String>> allowedLinks;
 	

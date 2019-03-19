@@ -15,24 +15,29 @@ public class RegisterHandler implements Route {
 
     @Override
     public Integer handle(Request req, Response resp) throws HaltException {
-        String user = req.queryParams("username");
-        String pass = req.queryParams("password");
+        String user=null, pass=null;
+        try{
+            user = req.queryParams("username");
+            pass = req.queryParams("password");
+        }
+        catch(Exception e){
+            System.out.println("Excception in RegisterHandler-1: "+ e);
+        }
+
 //        String first = req.queryParams("firstName");
 //        String last = req.queryParams("lastName");
+
         Integer id = -1;
-        
-        System.out.println("======>Register request for " + user + " and " + pass );
-        try{
-                    id = db.addUser(user, pass);
-        }    
-        catch(HaltException e){
-            System.out.println("User Already Exists");
-        }
-        
-        System.out.println("User added!");
+        id = db.addUser(user, pass);
+
         if(id != -1){
+            System.out.println("User added!");
             LoginHandler loginHandler = new LoginHandler(db);
             loginHandler.handle(req, resp);
+        }
+        else{
+            System.err.println("User Already Exists");
+            resp.redirect("/register.html");
         }
         
         return id;

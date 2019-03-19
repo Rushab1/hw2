@@ -1,11 +1,14 @@
 package edu.upenn.cis.cis455.storage;
 
+import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.util.DbLoad;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
+import edu.upenn.cis.cis455.crawler.HashEntity;
 import spark.HaltException;
 import spark.http.matching.Halt;
 
@@ -17,8 +20,13 @@ import spark.HaltException;
 
 public class StorageInterfaceImpl implements StorageInterface{
     private Environment dbEnv = null;
-    private EntityStore dbStore = null;
+    private EntityStore dbStore = null; //login store
+    private EntityStore seenStore = null;
+    private EntityStore crawlStore = null;
+
     private PrimaryIndex<String, dbEntity> pIdx;
+    private PrimaryIndex<String, dbEntity> pIdxHash;
+    
     private int userCount = 0;
     
     public StorageInterfaceImpl(String directory){
@@ -31,16 +39,29 @@ public class StorageInterfaceImpl implements StorageInterface{
             
             dbEnv = new Environment(new File(directory), envConfig);
             dbStore = new EntityStore(dbEnv, "EntityStore", storeConfig);
-            pIdx = dbStore.getPrimaryIndex(String.class, dbEntity.class);    
+            seenStore =  new EntityStore(dbEnv, "EntityStore", storeConfig);
+            crawlStore = new EntityStore(dbEnv, "EntityStore", storeConfig);
+            
+            pIdx = dbStore.getPrimaryIndex(String.class, dbEntity.class);
         }
         catch (DatabaseException dbe) {
             System.err.println("Error opening environment and store: " + dbe.toString());
         } 
     }
+    
+    
+    public EntityStore getSeenStore(){
+        return seenStore;
+    }
+    
+    public EntityStore getCrawlStore(){
+        return crawlStore;
+    }
+    
     /**
      * How many documents so far?
      */
-    
+
 	public int getCorpusSize(){
 	    return 0;
 	}
@@ -71,18 +92,13 @@ public class StorageInterfaceImpl implements StorageInterface{
 	 */
 	public int addUser(String username, String password){
 	    int id = 0;
-	    System.out.println("User added1");
 	    if(pIdx.contains(username)){
-//            throw HaltException(200);
+	        return -1;
 	    }
-	    System.out.println("User added2");
 	    userCount += 1;	 
 	    id = userCount;
-	    System.out.println("User added3");
 	    dbEntity entity = new dbEntity(id, username, password);
-	    System.out.println("User added4");
 	    pIdx.put(entity);
-	    System.out.println("User added5");
 	    return userCount;
 	}
 	
@@ -95,7 +111,7 @@ public class StorageInterfaceImpl implements StorageInterface{
     	    exists = pIdx.get(username).checkPassword(password);
         }
         catch(Exception e){
-            System.out.println("Exception in StorageInterfaceImpl - 1: " + e);
+            System.out.println("Exception in StorageInterfaceImpl - 2: " + e);
         }
     
 	    return exists;
@@ -114,6 +130,8 @@ public class StorageInterfaceImpl implements StorageInterface{
 	public void close(){
 	    try{
 	        dbStore.close();
+	        seenStore.close();
+	        crawlStore.close();
 	        dbEnv.close();
         }
         catch(Exception e){

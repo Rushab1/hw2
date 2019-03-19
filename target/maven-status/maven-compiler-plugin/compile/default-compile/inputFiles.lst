@@ -1,3 +1,4 @@
+/projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/CrawlTask.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/xpathengine/XPathEngineFactory.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/tasks/BoltTask.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/routers/IStreamRouter.java
@@ -9,15 +10,19 @@
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/handlers/RegisterHandler.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/storage/StorageInterfaceImpl.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/bolt/IRichBolt.java
+/projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/CrawlEntity.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/model/OccurrenceEvent.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/tuple/Values.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/spout/IRichSpout.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/OutputFieldsDeclarer.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/info/URLInfo.java
+/projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/CrawlWorker.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/bolt/BoltDeclarer.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/WebInterface.java
+/projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/MD5.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/storage/StorageFactory.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/routers/FieldBased.java
+/projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/handlers/IndexHandler.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/xpathengine/XPathEngine.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/routers/Broadcast.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/IOutputCollector.java
@@ -31,6 +36,7 @@
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/tuple/Tuple.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/model/User.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/Topology.java
+/projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/HashEntity.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/Config.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/cis455/crawler/Crawler.java
 /projects/555-hw2/src/main/java/edu/upenn/cis/stormlite/spout/SpoutOutputCollector.java
