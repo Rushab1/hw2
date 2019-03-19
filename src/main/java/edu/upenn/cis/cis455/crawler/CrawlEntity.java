@@ -21,7 +21,7 @@ public class CrawlEntity {
     public String md5 = null;
     public String stringContent = null;
     public Long crawlerRunTimeStamp = new Long(-1);
-    
+    public Long lastAccessed = new Long(-1);
     @PrimaryKey
     public String link;
     
@@ -53,6 +53,7 @@ public class CrawlEntity {
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         
         this.successful = successful;
-        this.last_downloaded = sdf.format(System.currentTimeMillis());   
+        this.last_downloaded = sdf.format(System.currentTimeMillis());
+        this.lastAccessed = System.currentTimeMillis();
     }
 }

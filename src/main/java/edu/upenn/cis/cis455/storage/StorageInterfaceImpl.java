@@ -9,10 +9,13 @@ import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
 import edu.upenn.cis.cis455.crawler.HashEntity;
+import edu.upenn.cis.cis455.model.User;
 import spark.HaltException;
 import spark.http.matching.Halt;
 
 import java.io.File;
+import java.util.Map;
+
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.StoreConfig;
@@ -24,8 +27,8 @@ public class StorageInterfaceImpl implements StorageInterface{
     private EntityStore seenStore = null;
     private EntityStore crawlStore = null;
 
-    private PrimaryIndex<String, dbEntity> pIdx;
-    private PrimaryIndex<String, dbEntity> pIdxHash;
+    private PrimaryIndex<String, User> pIdx;
+    private PrimaryIndex<String, User> pIdxHash;
     
     private int userCount = 0;
     
@@ -42,7 +45,7 @@ public class StorageInterfaceImpl implements StorageInterface{
             seenStore =  new EntityStore(dbEnv, "EntityStore", storeConfig);
             crawlStore = new EntityStore(dbEnv, "EntityStore", storeConfig);
             
-            pIdx = dbStore.getPrimaryIndex(String.class, dbEntity.class);
+            pIdx = dbStore.getPrimaryIndex(String.class,User.class);
         }
         catch (DatabaseException dbe) {
             System.err.println("Error opening environment and store: " + dbe.toString());
@@ -90,14 +93,14 @@ public class StorageInterfaceImpl implements StorageInterface{
 	/**
 	 * Adds a user and returns an ID
 	 */
-	public int addUser(String username, String password){
+	public int addUser(String username, String password, String firstName, String lastName){
 	    int id = 0;
 	    if(pIdx.contains(username)){
 	        return -1;
 	    }
 	    userCount += 1;	 
 	    id = userCount;
-	    dbEntity entity = new dbEntity(id, username, password);
+	    User entity = new User(id, username, password, firstName, lastName);
 	    pIdx.put(entity);
 	    return userCount;
 	}
@@ -115,6 +118,13 @@ public class StorageInterfaceImpl implements StorageInterface{
         }
     
 	    return exists;
+	}
+	
+	public Map<String, String> getUserData(String username, String pass){
+	    if(getSessionForUser(username, pass)){
+	        return pIdx.get(username).getData();
+	    }
+        return null;
 	}
 	
 	/**

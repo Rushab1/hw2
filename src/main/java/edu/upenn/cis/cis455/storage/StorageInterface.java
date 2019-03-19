@@ -1,5 +1,7 @@
 package edu.upenn.cis.cis455.storage;
 
+import java.util.Map;
+
 import com.sleepycat.persist.EntityStore;
 
 public interface StorageInterface {
@@ -26,7 +28,7 @@ public interface StorageInterface {
 	/**
 	 * Adds a user and returns an ID
 	 */
-	public int addUser(String username, String password);
+	public int addUser(String username, String password, String firstName, String lastName);
 	
 	/**
 	 * Tries to log in the user, or else throws a HaltException
@@ -47,4 +49,5 @@ public interface StorageInterface {
 	
 	public EntityStore getCrawlStore();
 	
+	public Map<String, String> getUserData(String username, String pass);	
 }

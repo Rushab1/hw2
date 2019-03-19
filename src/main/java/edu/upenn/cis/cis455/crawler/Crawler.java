@@ -26,6 +26,7 @@ import edu.upenn.cis.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 
 import com.sleepycat.persist.EntityStore;
+import com.sleepycat.persist.PrimaryIndex;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Level;
@@ -46,6 +47,7 @@ public class Crawler implements CrawlMaster {
     String startUrl;
     Long startTime = System.currentTimeMillis();
     HashSet <String> currentRunningLinks = new HashSet<>();
+    public PrimaryIndex <String, CrawlEntity> pIdxCrawl = null;
     
     public Crawler(String startUrl, StorageInterface db, int size, int count) {
         this.startUrl = startUrl;
@@ -62,6 +64,8 @@ public class Crawler implements CrawlMaster {
         
         CrawlTask task = new CrawlTask(startUrl);
         queue.add(task);
+        
+        pIdxCrawl = workerList.get(0).pIdxCrawl;
     }
 
     ///// TODO: you'll need to flesh all of this out.  You'll need to build a thread
@@ -77,7 +81,26 @@ public class Crawler implements CrawlMaster {
      * Returns true if it's permissible to access the site right now
      * eg due to robots, etc.
      */
-    public boolean isOKtoCrawl(String site, int port, boolean isSecure) { return true; }
+    public boolean isOKtoCrawl(RobotsTxtInfo rti, CrawlEntity ce) {
+        Integer crawlDelay;
+        if(ce == null)
+            return true;
+            
+        crawlDelay = rti.getCrawlDelay("cis455crawler");
+        
+        if(crawlDelay == null)
+            crawlDelay = rti.getCrawlDelay("*");
+        
+        if(crawlDelay == null)
+            return true;
+        
+        if(-ce.lastAccessed + System.currentTimeMillis() >= crawlDelay*1000)
+            return true; 
+            
+        System.out.println("False by CRAWL DELAY");
+        return false;
+    }
+
 
     /**
      * Returns true if the crawl delay says we should wait
@@ -117,7 +140,7 @@ public class Crawler implements CrawlMaster {
 
         }
         catch(Exception e){
-            System.out.println("Cannot open connection to robots.txt: " + e);
+            logger.error("Cannot open connection to robots.txt: " + e);
             return null;
         }
         
@@ -171,7 +194,16 @@ public class Crawler implements CrawlMaster {
                         path = "/";
                     robotsInfo.addDisallowedLink(agent, path);
                 }
-
+            }
+            
+            if(spl[0].trim().toLowerCase().equals("crawl-delay")){
+                try{
+                    String crawlDelay = spl[1].trim();
+                    for(String agent: curUserAgents){
+                        robotsInfo.addCrawlDelay(agent, Integer.parseInt(crawlDelay));
+                    }
+                }
+                catch(Exception e){}
             }
         }
         return robotsInfo;
@@ -191,10 +223,12 @@ public class Crawler implements CrawlMaster {
      * Returns true if it's permissible to fetch the content,
      * eg that it satisfies the path restrictions from robots.txt
      */
-    public boolean isOKtoParse(URLInfo url, String protocol) {
-
+    public boolean isOKtoParse(URLInfo url, String protocol, CrawlEntity ce) {
         RobotsTxtInfo robotsInfo= getRobotsTxtInfo(url, protocol);
-
+        
+        if(!isOKtoCrawl(robotsInfo, ce)) 
+            return false;
+            
         if(robotsInfo == null)
             return false;
 
@@ -312,7 +346,8 @@ public class Crawler implements CrawlMaster {
                 Thread.sleep(10);
 //                System.out.println(crawler.getFreeWorkerSize() + " :" + crawler.queue.size());
                 if(crawler.getFreeWorkerSize() == Crawler.NUM_WORKERS && crawler.queue.size()==0)
-                {System.out.println("BREAKING");
+                {
+                    System.out.println("BREAKING");
                     break;
                 }
                 if(crawler.queue.size() == 0){
@@ -345,7 +380,7 @@ public class Crawler implements CrawlMaster {
 //                urlInfo = new URLInfo(task.raw);
                 
                 boolean flag = true;
-                if(!crawler.isOKtoParse(urlInfo, task.protocol)){
+                if(!crawler.isOKtoParse(urlInfo, task.protocol, crawler.pIdxCrawl.get(task.raw))){
 //                    System.out.println("FALSE: " + task.host+"/" + task.path);
                     flag = false;
                 }

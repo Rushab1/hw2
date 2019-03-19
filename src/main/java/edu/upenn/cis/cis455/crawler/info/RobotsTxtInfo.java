@@ -73,7 +73,7 @@ public class RobotsTxtInfo {
 		return allowedLinks.get(key);
 	}
 	
-	public int getCrawlDelay(String key){
+	public Integer getCrawlDelay(String key){
 		return crawlDelays.get(key);
 	}
 	

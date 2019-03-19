@@ -11,6 +11,7 @@ import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import edu.upenn.cis.cis455.crawler.handlers.LoginHandler;
+import edu.upenn.cis.cis455.crawler.handlers.LogoutHandler;
 import edu.upenn.cis.cis455.crawler.handlers.RegisterHandler;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -46,9 +47,15 @@ public class WebInterface {
         before("/*", "POST", testIfLoggedIn);
         // TODO:  add /register, /logout, /index.html, /, /lookup
         logger.info("Using Database Directory: " + database);
-        post("/login", new LoginHandler(database));
+        
+        LoginHandler loginHandler = new LoginHandler(database);
+        loginHandler.setMaxInacInterval(300);//5 minutes
+        
+        post("/login", loginHandler);
         post("/register", "POST", new RegisterHandler(database));
         get("/index.html", new IndexHandler());
+        get("/logout", new LogoutHandler());
+        post("/logout", new LogoutHandler());
         get("/closeDB", "GET", (request, response)->{
                                 database.close(); 
                                 String resp = new String("Database Closed");

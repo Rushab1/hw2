@@ -112,7 +112,7 @@ public class CrawlWorker implements Runnable{
         }
    
         if(successfulHead){
-//            logger.info(task.raw +": Downloading"  );
+            logger.info(task.raw +": Downloading"  );
             if(crawlEntity.responseCode != HttpURLConnection.HTTP_NOT_MODIFIED){
                 successfulGet = sendGetRequest(task, crawlEntity);
             }
@@ -278,6 +278,7 @@ public class CrawlWorker implements Runnable{
             return false;
         }   
         
+        crawlEntity.successful(true);
         return true;
 	}
 	

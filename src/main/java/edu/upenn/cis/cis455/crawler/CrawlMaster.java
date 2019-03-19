@@ -1,5 +1,6 @@
 package edu.upenn.cis.cis455.crawler;
 
+import edu.upenn.cis.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 
 public interface CrawlMaster {
@@ -7,7 +8,7 @@ public interface CrawlMaster {
      * Returns true if it's permissible to access the site right now
      * eg due to robots, etc.
      */
-    public boolean isOKtoCrawl(String site, int port, boolean isSecure);
+    public boolean isOKtoCrawl(RobotsTxtInfo rti, CrawlEntity ce);
 
     /**
      * Returns true if the crawl delay says we should wait
@@ -18,7 +19,7 @@ public interface CrawlMaster {
      * Returns true if it's permissible to fetch the content,
      * eg that it satisfies the path restrictions from robots.txt
      */
-    public boolean isOKtoParse(URLInfo url, String protocol);
+    public boolean isOKtoParse(URLInfo url, String protocol, CrawlEntity ce);
     
     /**
      * Returns true if the document content looks worthy of indexing,
