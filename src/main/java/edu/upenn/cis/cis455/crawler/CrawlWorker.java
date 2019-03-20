@@ -143,9 +143,8 @@ public class CrawlWorker implements Runnable{
                     }
                     
                     logger.info(task.raw +": Indexed" );
-                    crawlMaster.incCount();
                 }
-
+                crawlMaster.incCount();
             }
             else{
                 if(pIdxCrawl.get(crawlEntity.link).crawlerRunTimeStamp == crawlMaster.getStartTime())
@@ -181,7 +180,30 @@ public class CrawlWorker implements Runnable{
 	        
 	        if(urlInfo.isSecure() == false && urlInfo.getHostName()==null)
 	        {//This means that the host is same as current page
-	           newTask = new CrawlTask(task.protocol, task.host, task.port, link);
+	               newTask = new CrawlTask(task.protocol, task.host, task.port, link);
+	           
+	           //get task filepath directory
+	           int index = task.raw.lastIndexOf("/");
+	           
+	           if(index == task.raw.length()){
+	               if(link.startsWith("/")){
+	                  if(link.length() == 1)
+	                    link = "";
+                      else
+                        link = link.substring(1);
+	               }
+       	           newTask = new CrawlTask(task.protocol, task.host, task.port, link);
+	           }
+	           else if(index != -1){
+	               if(!link.startsWith("/"))
+	                   link = "/" + link;
+	               
+	               String modifiedLink = task.raw.substring(0, index) + link;
+       	           newTask = new CrawlTask(modifiedLink);
+	           }
+	           else{//index = -1 ie "/" not in task.raw
+       	           newTask = new CrawlTask(task.protocol, task.host, task.port, link);
+	           }
 	        }
 	        else{
 	            newTask = new CrawlTask(link);

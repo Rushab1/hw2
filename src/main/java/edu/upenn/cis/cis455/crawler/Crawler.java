@@ -123,6 +123,7 @@ public class Crawler implements CrawlMaster {
 
         HttpURLConnection con = null;
         String robotstxt = null;
+//        System.out.println(link.toString());
         try{
 
             con = (HttpURLConnection) link.openConnection();
@@ -140,7 +141,7 @@ public class Crawler implements CrawlMaster {
 
         }
         catch(Exception e){
-            logger.error("Cannot open connection to robots.txt: " + e);
+            logger.error("Cannot open connection to robots.txt: " + e + link.toString());
             return null;
         }
         
@@ -341,8 +342,10 @@ public class Crawler implements CrawlMaster {
         System.out.println("Starting crawl of " + count + " documents, starting at " + startUrl);
         crawler.start();
         
-        while (!crawler.isDone()){
+        while(!crawler.isDone()){
+            int abc = 0;
             try {
+
                 Thread.sleep(10);
 //                System.out.println(crawler.getFreeWorkerSize() + " :" + crawler.queue.size());
                 if(crawler.getFreeWorkerSize() == Crawler.NUM_WORKERS && crawler.queue.size()==0)
@@ -351,18 +354,21 @@ public class Crawler implements CrawlMaster {
                     break;
                 }
                 if(crawler.queue.size() == 0){
+
                     continue;
                 }
 
                 while(crawler.getFreeWorkerSize() == 0){
 //                    System.out.println("NO free workers");
+
                     try{Thread.sleep(10);}catch(Exception e){}
                 }
                 
                 CrawlWorker worker ;
-                
+
                 try{
                     worker = crawler.workerList.get(crawler.freeWorkerIndices.poll());
+
                 }
                 catch(Exception e){
                     System.out.println(crawler.freeWorkerIndices.size());
