@@ -35,19 +35,26 @@ import org.apache.logging.log4j.LogManager;
 public class Crawler implements CrawlMaster {
     final static Logger logger = LogManager.getLogger(Crawler.class);
     static final int NUM_WORKERS = 50;
+    public Queue<CrawlTask> queue = new LinkedList<>();
     Integer count = 0;
     Integer max_count = 0;
+    
     Boolean isDone = true;
-    Queue<CrawlTask> queue = new LinkedList<>();
     ArrayList<CrawlWorker> workerList = new ArrayList<>();
+    
     Queue <Integer> freeWorkerIndices = new LinkedList<>();
     Long max_size = new Long(-1);
+    
     EntityStore CrawlStore;
     EntityStore seenStore;
+    
     String startUrl;
     Long startTime = System.currentTimeMillis();
+    
     HashSet <String> currentRunningLinks = new HashSet<>();
     public PrimaryIndex <String, CrawlEntity> pIdxCrawl = null;
+    
+    public Crawler(){}
     
     public Crawler(String startUrl, StorageInterface db, int size, int count) {
         this.startUrl = startUrl;
@@ -106,7 +113,6 @@ public class Crawler implements CrawlMaster {
      * Returns true if the crawl delay says we should wait
      */
     public boolean deferCrawl(String site) { return false; }
-    
     
     public RobotsTxtInfo getRobotsTxtInfo(URLInfo url, String protocol){
         String host = url.getHostName();
@@ -329,7 +335,7 @@ public class Crawler implements CrawlMaster {
             System.exit(1);
         }
         
-        System.out.println("Crawler starting");
+        System.out.println("Crawler starting" + args[1]);
         String startUrl = args[0];
         String envPath = args[1];
         Integer size = Integer.valueOf(args[2]);

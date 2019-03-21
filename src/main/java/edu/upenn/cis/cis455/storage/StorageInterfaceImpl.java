@@ -8,6 +8,7 @@ import com.sleepycat.je.util.DbLoad;
 import com.sleepycat.persist.model.Entity;
 import com.sleepycat.persist.model.PrimaryKey;
 
+import edu.upenn.cis.cis455.crawler.CrawlEntity;
 import edu.upenn.cis.cis455.crawler.HashEntity;
 import edu.upenn.cis.cis455.model.User;
 import spark.HaltException;
@@ -29,6 +30,7 @@ public class StorageInterfaceImpl implements StorageInterface{
 
     private PrimaryIndex<String, User> pIdx;
     private PrimaryIndex<String, User> pIdxHash;
+    private PrimaryIndex<String, CrawlEntity> pIdxCrawl;
     
     private int userCount = 0;
     
@@ -46,6 +48,7 @@ public class StorageInterfaceImpl implements StorageInterface{
             crawlStore = new EntityStore(dbEnv, "EntityStore", storeConfig);
             
             pIdx = dbStore.getPrimaryIndex(String.class,User.class);
+            pIdxCrawl = crawlStore.getPrimaryIndex(String.class, CrawlEntity.class);
         }
         catch (DatabaseException dbe) {
             System.err.println("Error opening environment and store: " + dbe.toString());
@@ -146,5 +149,9 @@ public class StorageInterfaceImpl implements StorageInterface{
         }
         catch(Exception e){
         }
+	}
+	
+	public PrimaryIndex<String, CrawlEntity> getPIDxCrawl(){
+	    return pIdxCrawl;
 	}
 }

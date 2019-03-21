@@ -3,6 +3,9 @@ package edu.upenn.cis.cis455.storage;
 import java.util.Map;
 
 import com.sleepycat.persist.EntityStore;
+import com.sleepycat.persist.PrimaryIndex;
+
+import edu.upenn.cis.cis455.crawler.CrawlEntity;
 
 public interface StorageInterface {
     /**
@@ -50,4 +53,6 @@ public interface StorageInterface {
 	public EntityStore getCrawlStore();
 	
 	public Map<String, String> getUserData(String username, String pass);	
+	
+	public PrimaryIndex<String, CrawlEntity> getPIDxCrawl();
 }

@@ -11,7 +11,9 @@ public class RunAllTests extends TestCase
     try {
       Class[]  testClasses = {
         /* TODO: Add the names of your unit test classes here */
-        // Class.forName("your.class.name.here") 
+         Class.forName("TestCrawlWorker")
+//         , Class.forName("TestStorageForCrawl"), Class.forName("TestStorageForLogin")
+         
       };   
       
       return new TestSuite(testClasses);

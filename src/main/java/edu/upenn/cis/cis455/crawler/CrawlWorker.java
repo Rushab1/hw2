@@ -61,10 +61,19 @@ public class CrawlWorker implements Runnable{
         HttpURLConnection con;
         URL url;
         
-        CrawlEntity crawlEntity = pIdxCrawl.get(task.raw);
+        CrawlEntity crawlEntity = null;
+        if( pIdxCrawl != null)
+              crawlEntity = pIdxCrawl.get(task.raw);
         
         if(crawlEntity == null){
-            crawlEntity = new CrawlEntity(task.raw, task.port, crawlMaster.getStartTime());
+            Long time;
+            
+            if(crawlMaster != null)
+                 time = crawlMaster.getStartTime();
+            else
+                 time = 0L;
+            
+            crawlEntity = new CrawlEntity(task.raw, task.port, time);
         }
 
         try{

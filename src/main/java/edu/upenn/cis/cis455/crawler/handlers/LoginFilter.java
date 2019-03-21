@@ -22,7 +22,8 @@ public class LoginFilter implements Filter {
         !req.pathInfo().equals("/login") &&
         !req.pathInfo().equals("/register") &&
         !req.pathInfo().equals("/register.html") &&
-        !req.pathInfo().equals("/favicon.ico")) {
+        !req.pathInfo().equals("/favicon.ico") && 
+        !req.pathInfo().equals("/lookup")) {
             
 
             logger.info("Request is NOT login/registration");

@@ -4,7 +4,6 @@ edu/upenn/cis/cis455/crawler/HashEntity.class
 edu/upenn/cis/cis455/storage/StorageInterfaceImpl.class
 edu/upenn/cis/stormlite/bolt/BoltDeclarer.class
 edu/upenn/cis/stormlite/bolt/OutputCollector.class
-edu/upenn/cis/cis455/storage/dbEntity.class
 edu/upenn/cis/stormlite/TopologyContext.class
 edu/upenn/cis/stormlite/TopologyBuilder.class
 edu/upenn/cis/stormlite/Topology.class
@@ -17,6 +16,7 @@ edu/upenn/cis/cis455/crawler/handlers/RegisterHandler.class
 edu/upenn/cis/cis455/storage/StorageInterface.class
 edu/upenn/cis/stormlite/tasks/SpoutTask.class
 edu/upenn/cis/stormlite/routers/FieldBased.class
+edu/upenn/cis/cis455/crawler/SHA_256.class
 edu/upenn/cis/cis455/model/User.class
 edu/upenn/cis/stormlite/routers/RoundRobin.class
 edu/upenn/cis/cis455/crawler/handlers/IndexHandler.class
@@ -41,4 +41,5 @@ edu/upenn/cis/cis455/crawler/CrawlEntity.class
 edu/upenn/cis/stormlite/routers/IStreamRouter.class
 edu/upenn/cis/cis455/xpathengine/XPathEngineFactory.class
 edu/upenn/cis/stormlite/IOutputCollector.class
+edu/upenn/cis/cis455/crawler/handlers/LogoutHandler.class
 edu/upenn/cis/stormlite/routers/Broadcast.class

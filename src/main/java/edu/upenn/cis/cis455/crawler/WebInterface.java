@@ -12,6 +12,7 @@ import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import edu.upenn.cis.cis455.crawler.handlers.LoginHandler;
 import edu.upenn.cis.cis455.crawler.handlers.LogoutHandler;
+import edu.upenn.cis.cis455.crawler.handlers.LookupHandler;
 import edu.upenn.cis.cis455.crawler.handlers.RegisterHandler;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -62,6 +63,8 @@ public class WebInterface {
                                 return resp;
                                 }
                                 );
+                                
+        get("/lookup", new LookupHandler(database));
         awaitInitialization();
     }
 }
