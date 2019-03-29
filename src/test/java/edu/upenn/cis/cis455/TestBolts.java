@@ -50,7 +50,8 @@ public class TestBolts {
     @Test
     public void test(){
         System.out.println(System.getProperty("user.dir"));
-        StorageInterface db = StorageFactory.getDatabaseInstance(System.getProperty("user.dir") + "/www/testDB/");
+        
+        StorageInterface db = StorageFactory.getDatabaseInstance(System.getProperty("user.dir") + "/www/testDB/", true);
         SingletonCrawler.initializeCrawler("https://dbappserv.cis.upenn.edu/crawltest/nytimes/", db, 5, 50);
 
         

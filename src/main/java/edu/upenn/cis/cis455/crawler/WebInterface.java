@@ -57,6 +57,9 @@ public class WebInterface {
         
         post("/login", loginHandler);
         post("/register", "POST", new RegisterHandler(database));
+        
+        post("/register_admin", "POST", new RegisterHandler(database));
+        
         get("/index.html", new IndexHandler());
         get("/logout", new LogoutHandler());
         post("/logout", new LogoutHandler());

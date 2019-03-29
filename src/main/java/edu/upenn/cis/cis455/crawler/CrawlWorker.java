@@ -115,15 +115,12 @@ public class CrawlWorker implements Runnable{
 
         if(! successfulHead)
         {
-//            logger.info(task.raw + ": " + crawlEntity.responseCode + ": NOT Indexed: Download UNSuccessful");
-//            logger.error(crawlEntity.responseCode + ": "+ task.raw);
             if(crawlEntity.responseCode == 301 || crawlEntity.responseCode == 302){
                 String newLink = con.getHeaderField("Location");
                 
                 CrawlTask newTask = new CrawlTask(newLink);
                 URLInfo urlInfo = new URLInfo(newTask.host, newTask.port, newTask.path);
                 if( crawlMaster.isOKtoParse(urlInfo, newTask.protocol, crawlMaster.pIdxCrawl.get(newTask.raw)) ){
-//                    System.out.println("OK TO PARSE: " + newTask.raw);
                     crawlMaster.queue.add(newTask);
                 }
                 logger.info(task.raw + ": " + crawlEntity.responseCode + ": NOT Indexed" );
@@ -134,11 +131,10 @@ public class CrawlWorker implements Runnable{
             done();
             crawlMaster.notifyThreadExited(this);
             return crawlEntity;
-//            return;
         }
    
         if(successfulHead){
-//            logger.info(task.raw +": Downloading"  );
+            logger.info(task.raw +": Downloading"  );
             if(crawlEntity.responseCode != HttpURLConnection.HTTP_NOT_MODIFIED){
                 successfulGet = sendGetRequest(task, crawlEntity);
             }

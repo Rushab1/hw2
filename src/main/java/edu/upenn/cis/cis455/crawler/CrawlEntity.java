@@ -17,7 +17,7 @@ public class CrawlEntity {
     public int contentLength;
     public String last_downloaded = null;
     public int port;
-    public byte[] content;
+    public byte[] content = null;
     public Boolean successful = false;
     public String md5 = null;
     public String stringContent = null;

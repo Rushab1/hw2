@@ -44,7 +44,6 @@ public class Executable implements Runnable{
                 System.exit(0);
             }
         }
-        
     }
     
     public static void crawlerMain(String[] args){

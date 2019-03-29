@@ -68,9 +68,8 @@ public class DOMParserBolt implements IRichBolt{
 	    doc.traverse(new NodeVisitor(){
 	        public void head(Node node, int depth) {
                 if(!node.nodeName().startsWith("#")){
-    	            String text = node.toString();
     	            OccurrenceEvent e = new OccurrenceEvent(docId, "open", node.nodeName(), null);
-                    OccurrenceEvent eText = new OccurrenceEvent(docId, "text", node.nodeName(), text);
+                    OccurrenceEvent eText = new OccurrenceEvent(docId, "text", node.nodeName(), node.toString());
                 
                     collector.emit(new Values<>(x, e));
                     SingletonCrawler.incBufferSize();
@@ -109,8 +108,10 @@ public class DOMParserBolt implements IRichBolt{
             Document doc;
             if(crawlEntity.contentType.equals("text/html"))
     	       doc = Jsoup.parse(crawlEntity.stringContent, crawlEntity.link);
-    	    else
+    	    else{
     	       doc = Jsoup.parse(crawlEntity.stringContent, crawlEntity.link, Parser.xmlParser());
+	       }
+
 
     	    XPathImpl x = new XPathImpl(pIdxChannel);
             String[] expressions = SingletonCrawler.getExpressions();

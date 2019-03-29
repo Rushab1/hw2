@@ -1,32 +1,27 @@
 package edu.upenn.cis.cis455.storage;
 
-import com.sleepycat.je.Database;
+
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
-import com.sleepycat.je.util.DbLoad;
-import com.sleepycat.persist.model.Entity;
-import com.sleepycat.persist.model.PrimaryKey;
 
 import edu.upenn.cis.cis455.crawler.ChannelEntity;
 import edu.upenn.cis.cis455.crawler.ChannelNameEntity;
 import edu.upenn.cis.cis455.crawler.CrawlEntity;
 import edu.upenn.cis.cis455.crawler.HashEntity;
 import edu.upenn.cis.cis455.model.User;
-import spark.HaltException;
-import spark.http.matching.Halt;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 import com.sleepycat.persist.EntityCursor;
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
 import com.sleepycat.persist.StoreConfig;
-import spark.HaltException;
 
 public class StorageInterfaceImpl implements StorageInterface{
     private Environment dbEnv = null;
@@ -44,11 +39,61 @@ public class StorageInterfaceImpl implements StorageInterface{
     
     private int userCount = 0;
     
+    private boolean inMemory = false;
+    
+    public void setInMemory(boolean b){
+        inMemory = b;
+    }
+    
+    public StorageInterfaceImpl(String directory, boolean inMemory){
+        setInMemory(inMemory);
+        try {
+            EnvironmentConfig envConfig;
+            if(inMemory){
+                System.out.println("Building databse in IN_MEMORY");
+                Properties properties = new Properties();
+                properties.put(EnvironmentConfig.LOG_MEM_ONLY, "true");
+                envConfig = new EnvironmentConfig(properties);
+            }
+            else{
+                envConfig = new EnvironmentConfig();
+            }
+
+            StoreConfig storeConfig = new StoreConfig();
+            envConfig.setAllowCreate(true);
+            storeConfig.setAllowCreate(true);
+            
+            dbEnv = new Environment(new File(directory), envConfig);
+            dbStore = new EntityStore(dbEnv, "EntityStore", storeConfig);
+            seenStore =  new EntityStore(dbEnv, "EntityStore", storeConfig);
+            crawlStore = new EntityStore(dbEnv, "EntityStore", storeConfig);
+            channelStore = new EntityStore(dbEnv, "channelStore", storeConfig);
+            channelNameStore = new EntityStore(dbEnv, "channelNameStore", storeConfig);
+            
+            pIdx = dbStore.getPrimaryIndex(String.class,User.class);
+            pIdxCrawl = crawlStore.getPrimaryIndex(String.class, CrawlEntity.class);
+            pIdxHash = seenStore.getPrimaryIndex(String.class, HashEntity.class);
+            pIdxChannel = channelStore.getPrimaryIndex(String.class, ChannelEntity.class);
+            pIdxChannelName = channelNameStore.getPrimaryIndex(String.class, ChannelNameEntity.class);
+        }
+        catch (DatabaseException dbe) {
+            System.err.println("Error opening environment and store: " + dbe.toString());
+        } 
+    }
+    
     public StorageInterfaceImpl(String directory){
         try {
-            EnvironmentConfig envConfig = new EnvironmentConfig();
+            EnvironmentConfig envConfig;
+            if(inMemory){
+                Properties properties = new Properties();
+                properties.put(EnvironmentConfig.LOG_MEM_ONLY, "true");
+                envConfig = new EnvironmentConfig(properties);
+            }
+            else{
+                envConfig = new EnvironmentConfig();
+            }
+
             StoreConfig storeConfig = new StoreConfig();
-            
             envConfig.setAllowCreate(true);
             storeConfig.setAllowCreate(true);
             

@@ -5,7 +5,11 @@ import spark.Route;
 import spark.Response;
 import spark.HaltException;
 
-import java.util.Arrays;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.sleepycat.persist.PrimaryIndex;
 
@@ -26,9 +30,6 @@ public class ShowHandler implements Route {
         PrimaryIndex<String, ChannelNameEntity> pIdxChannelName=  db.getPIDxChannelName();
         PrimaryIndex<String, ChannelEntity> pIdxChannel=  db.getPIDxChannel();
         PrimaryIndex<String, CrawlEntity> pIdxCrawl= db.getPIDxCrawl();
-        
-        
-        System.out.println(Arrays.toString(db.getExpressions()));
         
         String queryChannelName = req.queryParams("channel");
         if(queryChannelName==null){
@@ -60,14 +61,38 @@ public class ShowHandler implements Route {
         webpage += "<div class=\"channelheader\"><br>";
         webpage +=  "<header><br><title>Channel name: " + queryChannelName + 
                     ", created by: " + cne.userFirstname + 
-                    "</title><br></header></div><br>";
+                    "</title><br>" +
+                    "Channel name: " + queryChannelName + 
+                    ", created by: " + cne.userFirstname + 
+                    "</header></div><br>";
 
+        String pattern = "yyyy-MM-dd'T'hh:mm:ss";
+        SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+        
+        SimpleDateFormat sdfOrig = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        sdfOrig.setTimeZone(TimeZone.getTimeZone("GMT"));
+        
         for(String docId: pIdxChannel.keys() ){
             CrawlEntity ce = pIdxCrawl.get(docId);
-            System.out.println(index + " : " + Arrays.toString(pIdxChannel.get(docId).valid) +" : " + pIdxChannel.get(docId).valid[index]);
+
             
             if(pIdxChannel.get(docId).valid[index]){
-                webpage += "Crawled on: " + ce.last_downloaded + "<br>";
+                String dateTime = ce.last_downloaded;
+                try{
+//                    Matcher m = Pattern.compile("(..., .. ... ....) (.*)").matcher(dateTime);
+//                    m.find();
+//                    dateTime = m.replaceAll(m.group(1) + "T" + m.group(2));
+                    
+                    Date crawledOnDate = sdfOrig.parse(dateTime);
+                    
+                    System.out.println(crawledOnDate);
+                    dateTime = sdf.format(crawledOnDate);
+                }
+                catch(Exception e){
+                    System.err.println("Incorrect Date Format: " + e);
+                }
+            
+                webpage += "Crawled on: " + dateTime + "<br>";
                 webpage += "Location: " + docId + "<br>";
                 webpage += "<div class=\"document\">\n" + ce.stringContent + "</div><br><br>";
             }
