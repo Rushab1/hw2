@@ -13,24 +13,16 @@ public class IndexHandler implements Route {
 
     @Override
     public String handle(Request req, Response resp) throws HaltException {
-        String user = req.session().attribute("firstName");
-        String pass = req.session().attribute("lastName");
+        String first = req.session().attribute("firstName");
+        String last = req.session().attribute("lastName");
 
-        
-        String body = "<html><title> Index </title>" + 
-                      "<body> <h3> Welcome, " + user + " " + pass + "</h3>" +  
-                      "<br><br>" +
-                      "<form method=\"POST\" action=\"/logout\">" +
-                      "<input type=\"Submit\" value=\"Log out\"/>" +
-                      "</form>" + 
-                      "</body></html>";
+        String body = ReadUtils.createHomePage(req.session().attribute("message"), first,last);
         resp.body(body);
 
         resp.status(200);
         resp.header("Content-Type", "text/html");
         resp.header("Content-Length", Integer.toString(body.length()));
         resp.header("Set-Cookie", req.cookie("JSESSIONID"));
-        
         return body;
     }
 }

@@ -8,13 +8,12 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.xml.transform.URIResolver;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
+import edu.upenn.cis.cis455.storage.StorageFactory;
 
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
@@ -42,8 +41,8 @@ public class CrawlWorker implements Runnable{
         this.crawlMaster = crawlMaster;
         this.CrawlStore = CrawlStore;
         this.seenStore = seenStore;
-        pIdxCrawl = CrawlStore.getPrimaryIndex(String.class, CrawlEntity.class);    
-        pIdxHash = seenStore.getPrimaryIndex(String.class, HashEntity.class);
+        pIdxCrawl = StorageFactory.getDatabaseInstance(null).getPIDxCrawl();
+        pIdxHash = StorageFactory.getDatabaseInstance(null).getPIDxHash();
         this.max_size = max_size;
         this.index = index;
     }
@@ -57,6 +56,10 @@ public class CrawlWorker implements Runnable{
     }
     
     public void run(){
+        execute();
+    }
+
+    public CrawlEntity execute(){
         this.isFree = false;
         HttpURLConnection con;
         URL url;
@@ -91,15 +94,18 @@ public class CrawlWorker implements Runnable{
             logger.error("Exception in Crawl Worker-1: " + e +": url="+task.raw);
             crawlMaster.notifyThreadExited(this);
             done();
-            return;
+//            return;
+            return crawlEntity;
         }
         catch(IOException e){
             crawlEntity.successful(false);
             logger.error("Exception in Crawl Worker-2: " + e +": url="+task.raw);
             crawlMaster.notifyThreadExited(this);
             done();
-            return;
+            return crawlEntity;
+//            return;
         }
+            
             
         HttpURLConnection.setFollowRedirects(true); 
         con.setInstanceFollowRedirects(false);  
@@ -109,19 +115,30 @@ public class CrawlWorker implements Runnable{
 
         if(! successfulHead)
         {
-            logger.info(task.raw + ": " + crawlEntity.responseCode + ": NOT Indexed: Download UNSuccessful");
+//            logger.info(task.raw + ": " + crawlEntity.responseCode + ": NOT Indexed: Download UNSuccessful");
+//            logger.error(crawlEntity.responseCode + ": "+ task.raw);
             if(crawlEntity.responseCode == 301 || crawlEntity.responseCode == 302){
                 String newLink = con.getHeaderField("Location");
-                crawlMaster.queue.add(new CrawlTask(newLink));
-                logger.info(task.raw + ": " + crawlEntity.responseCode + ": NOT Indexed: Already indexed in this crawler run - not indexing links from this file" );
+                
+                CrawlTask newTask = new CrawlTask(newLink);
+                URLInfo urlInfo = new URLInfo(newTask.host, newTask.port, newTask.path);
+                if( crawlMaster.isOKtoParse(urlInfo, newTask.protocol, crawlMaster.pIdxCrawl.get(newTask.raw)) ){
+//                    System.out.println("OK TO PARSE: " + newTask.raw);
+                    crawlMaster.queue.add(newTask);
+                }
+                logger.info(task.raw + ": " + crawlEntity.responseCode + ": NOT Indexed" );
+            }
+            else{
+                logger.info(task.raw + ": " + crawlEntity.responseCode + ": NOT Indexed: Download UNSuccessful");
             }
             done();
             crawlMaster.notifyThreadExited(this);
-            return;
+            return crawlEntity;
+//            return;
         }
    
         if(successfulHead){
-            logger.info(task.raw +": Downloading"  );
+//            logger.info(task.raw +": Downloading"  );
             if(crawlEntity.responseCode != HttpURLConnection.HTTP_NOT_MODIFIED){
                 successfulGet = sendGetRequest(task, crawlEntity);
             }
@@ -143,31 +160,31 @@ public class CrawlWorker implements Runnable{
                 ){
                     
 
-                pIdxHash.put(new HashEntity(crawlEntity.link, crawlEntity.md5));
-                if(crawlEntity.contentType.equals("text/html")){
-                    ArrayList<CrawlTask> newTasks = getTasks(crawlEntity.stringContent, task);
+//                pIdxHash.put(new HashEntity(crawlEntity.link, crawlEntity.md5));
+//                if(crawlEntity.contentType.equals("text/html")){
+//                    ArrayList<CrawlTask> newTasks = getTasks(crawlEntity.stringContent, task);
                 
-                    for(CrawlTask task: newTasks){
-                        crawlMaster.queue.add(task);
-                    }
+//                    for(CrawlTask task: newTasks){
+//                        crawlMaster.queue.add(task);
+//                    }
                     
-                    logger.info(task.raw +": Indexed" );
-                }
-                crawlMaster.incCount();
+//                    logger.info(task.raw +": Indexed" );
+//                }
+//                crawlMaster.incCount();
             }
             else{
-                if(pIdxCrawl.get(crawlEntity.link).crawlerRunTimeStamp == crawlMaster.getStartTime())
-                    logger.info(task.raw +": NOT Indexed: Already indexed in this crawler run - not indexing links from this file" );
-                else
+                if(pIdxHash.get(crawlEntity.link).md5.equals(crawlEntity.md5))
                     logger.info(task.raw +": NOT Indexed: md5 exists - not saving to file or indexing links from this page"  );
+                else{}
             }
         }
         
-        crawlEntity.crawlerRunTimeStamp = crawlMaster.getStartTime();
-        pIdxCrawl.put(crawlEntity);
-        
+//        crawlEntity.crawlerRunTimeStamp = crawlMaster.getStartTime();
+//        pIdxCrawl.put(crawlEntity);
+
         done();
         crawlMaster.notifyThreadExited(this);
+        return crawlEntity;
 	}
 	
 	public static ArrayList<CrawlTask> getTasks(String content, CrawlTask task){
@@ -300,10 +317,12 @@ public class CrawlWorker implements Runnable{
                )){
                    con.disconnect();
                    crawlEntity.successful(false);
+                   logger.error("EXCEP HERE: " + contentType);
                    return false;
         }
         
         if(contentLength > max_size){
+            logger.error("EXCEP HERE: " + max_size + " : " + contentLength );
             crawlEntity.successful(false);
             con.disconnect();
             return false;

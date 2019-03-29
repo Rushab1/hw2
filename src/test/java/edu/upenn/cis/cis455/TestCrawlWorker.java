@@ -28,6 +28,9 @@ public class TestCrawlWorker{
 
     @Test
     public void test()throws IOException, MalformedURLException{
+        //This test sends an http HEAD request via the required the worker function
+        //It asserts that the output response code, content-type and content-length are working correctly
+        
         CrawlWorker w = new CrawlWorker();
         w.max_size = 1024*1024*5L;
         String link ="https://dbappserv.cis.upenn.edu/crawltest.html";
@@ -37,7 +40,9 @@ public class TestCrawlWorker{
         CrawlEntity ce = new CrawlEntity();
         
         boolean successfulHead = w.sendHeadRequest(url, con, ce);
-        System.out.println(successfulHead);
+
         assertTrue(successfulHead == true);
+        assertTrue(ce.contentType.equals("text/html"));
+        assertTrue(ce.contentLength == 1186);
     }
 }

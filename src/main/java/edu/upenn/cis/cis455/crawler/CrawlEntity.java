@@ -1,5 +1,6 @@
 package edu.upenn.cis.cis455.crawler;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
@@ -22,6 +23,12 @@ public class CrawlEntity {
     public String stringContent = null;
     public Long crawlerRunTimeStamp = new Long(-1);
     public Long lastAccessed = new Long(-1);
+    public ArrayList<CrawlTask> newTasks;
+    
+    public void setNewTasks(ArrayList<CrawlTask> newTasks){
+        this.newTasks = newTasks;
+    }
+    
     @PrimaryKey
     public String link;
     
@@ -33,15 +40,6 @@ public class CrawlEntity {
         this.port = port;
         this.crawlerRunTimeStamp = crawlerRunTimeStamp;
     }
-//    
-//    public void setAll(int responseCode, String contentType, String contentEncoding, int contentLength, byte[] content){
-//        this.responseCode = responseCode;
-//        this.contentEncoding = contentEncoding;
-//        this.contentLength = contentLength;
-//        this.contentType = contentType;
-//        this.content = content;
-//        this.successful = true;
-//    }
     
     public void setCrawlerRunTimeStamp(Long time){
         this.crawlerRunTimeStamp = time;

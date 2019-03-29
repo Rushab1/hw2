@@ -1,11 +1,15 @@
 package edu.upenn.cis.cis455.storage;
 
+import java.nio.channels.Channels;
 import java.util.Map;
 
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
 
+import edu.upenn.cis.cis455.crawler.ChannelEntity;
+import edu.upenn.cis.cis455.crawler.ChannelNameEntity;
 import edu.upenn.cis.cis455.crawler.CrawlEntity;
+import edu.upenn.cis.cis455.crawler.HashEntity;
 
 public interface StorageInterface {
     /**
@@ -33,6 +37,8 @@ public interface StorageInterface {
 	 */
 	public int addUser(String username, String password, String firstName, String lastName);
 	
+	public String addChannel(String channelName, String xpathExp, String firstName);
+	
 	/**
 	 * Tries to log in the user, or else throws a HaltException
 	 */
@@ -52,7 +58,25 @@ public interface StorageInterface {
 	
 	public EntityStore getCrawlStore();
 	
+	public EntityStore getChannelStore();
+	
+	public EntityStore getChannelNameStore();
+	
 	public Map<String, String> getUserData(String username, String pass);	
 	
 	public PrimaryIndex<String, CrawlEntity> getPIDxCrawl();
+	public PrimaryIndex<String, HashEntity> getPIDxHash();
+	/*
+	 * docId + valid bits
+	 */
+	public PrimaryIndex<String, ChannelEntity> getPIDxChannel(); 
+	
+	/*
+	 * channel name + xpath Expression + first name of user who created the channel
+	 */
+	public PrimaryIndex<String, ChannelNameEntity> getPIDxChannelName();
+	
+	public String[] getExpressions();
+    public String[] getChannelNames();
+    public String[] getChannelUsernames();
 }

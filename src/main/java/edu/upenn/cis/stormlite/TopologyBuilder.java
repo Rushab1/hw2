@@ -28,15 +28,12 @@ public class TopologyBuilder {
 			String streamID, 
 			IRichSpout spout, 
 			int parallelism) {
-		
 		topo.setSpouts(streamID, spout.getClass(), parallelism);
 	}
-	
+
 	public BoltDeclarer setBolt(String streamID, IRichBolt bolt, int parallelism) {
-		topo.setBolts(streamID, bolt.getClass(), parallelism);
-		
+		topo.setBolts(streamID, bolt.getClass(), parallelism);		
 		topo.setBoltGrouping(streamID, new BoltDeclarer());
-		
 		return topo.boltGrouping.get(streamID);
 	}
 

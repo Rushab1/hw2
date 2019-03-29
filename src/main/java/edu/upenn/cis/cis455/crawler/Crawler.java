@@ -1,35 +1,26 @@
 package edu.upenn.cis.cis455.crawler;
 
+/*
+ * TODO: 
+ * redirect directly writes to queue
+ * In XPathImpl the Map needs to be updated on close
+ */
+
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
-import javax.net.ssl.HttpsURLConnection;
-
 import edu.upenn.cis.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
-import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
-import edu.upenn.cis.cis455.crawler.info.RobotsTxtInfo;
-import edu.upenn.cis.cis455.crawler.info.URLInfo;
-
 import com.sleepycat.persist.EntityStore;
 import com.sleepycat.persist.PrimaryIndex;
-
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 
 public class Crawler implements CrawlMaster {
@@ -37,51 +28,63 @@ public class Crawler implements CrawlMaster {
     static final int NUM_WORKERS = 50;
     public Queue<CrawlTask> queue = new LinkedList<>();
     Integer count = 0;
-    Integer max_count = 0;
+    public Integer max_count = 0;
     
     Boolean isDone = true;
     ArrayList<CrawlWorker> workerList = new ArrayList<>();
     
     Queue <Integer> freeWorkerIndices = new LinkedList<>();
-    Long max_size = new Long(-1);
+    public Long max_size = new Long(-1);
     
-    EntityStore CrawlStore;
-    EntityStore seenStore;
+    public String envPath;
+    public StorageInterface db;
+    public EntityStore CrawlStore;
+    public EntityStore channelStore;
+    public EntityStore seenStore;
     
     String startUrl;
     Long startTime = System.currentTimeMillis();
     
     HashSet <String> currentRunningLinks = new HashSet<>();
     public PrimaryIndex <String, CrawlEntity> pIdxCrawl = null;
-    
+    public PrimaryIndex <String, ChannelEntity> pIdxChannel = null; 
+
+    /**
+     * Main program:  init database, start crawler, wait
+     * for it to notify that it is done, then close.
+     */
+    public static void main(String args[]) {
+        Executable executable = new Executable();
+        Thread thread = new Thread(executable);
+        thread.start();
+        Executable.crawlerMain(args);
+    }
+        
     public Crawler(){}
     
     public Crawler(String startUrl, StorageInterface db, int size, int count) {
         this.startUrl = startUrl;
+        this.db = db;
         this.seenStore = db.getSeenStore();
         this.CrawlStore = db.getCrawlStore();
+        this.channelStore = db.getChannelStore();
+        
+        this.pIdxChannel = db.getPIDxChannel();
+        this.pIdxCrawl = db.getPIDxCrawl();
+        
         this.max_size = new Long(size) * 1024 * 1024;
         this.max_count = count;
         
-        for(int i=0; i<NUM_WORKERS; i++){
-            CrawlWorker c = new CrawlWorker(this, this.CrawlStore, this.seenStore, max_size, i);
-            freeWorkerIndices.add(i);
-            workerList.add(c);
-        }
-        
         CrawlTask task = new CrawlTask(startUrl);
-        queue.add(task);
-        
-        pIdxCrawl = workerList.get(0).pIdxCrawl;
+        boolean isOkToParse = isOKtoParse(new URLInfo(task.host, task.port, task.path), task.protocol, new CrawlEntity());
+        if(isOkToParse){
+            queue.add(task);
+        }
+        else{
+            logger.error(": startUrl cannot be crawled: robots.txt: Permission denied");
+        }
     }
-
-    ///// TODO: you'll need to flesh all of this out.  You'll need to build a thread
-    // pool of CrawlerWorkers etc. and to implement the functions below which are
-    // stubs to compile
     
-    /**
-     * Main thread
-     */
     public void start() {}
     
     /**
@@ -104,7 +107,7 @@ public class Crawler implements CrawlMaster {
         if(-ce.lastAccessed + System.currentTimeMillis() >= crawlDelay*1000)
             return true; 
             
-        System.out.println("False by CRAWL DELAY");
+        System.out.println(ce.link + ": Not parsing due to CRAWL DELAY: " + (-ce.lastAccessed + System.currentTimeMillis()) +" : "  + (crawlDelay*1000));
         return false;
     }
 
@@ -232,7 +235,6 @@ public class Crawler implements CrawlMaster {
      */
     public boolean isOKtoParse(URLInfo url, String protocol, CrawlEntity ce) {
         RobotsTxtInfo robotsInfo= getRobotsTxtInfo(url, protocol);
-        
         if(!isOKtoCrawl(robotsInfo, ce)) 
             return false;
             
@@ -303,11 +305,6 @@ public class Crawler implements CrawlMaster {
             System.out.println("Count Exceeded: " + count);
             return true;
         }
-        
-//        if(getFreeWorkerSize() == NUM_WORKERS && queue.size() == 0){
-//            System.out.println("EXIT PATH 2: " + getFreeWorkerSize() +": " + queue.size());
-//            return true;
-//        }
         return false;
     }
     
@@ -323,115 +320,13 @@ public class Crawler implements CrawlMaster {
         }
         return cnt;
     }
-    /**
-     * Main program:  init database, start crawler, wait
-     * for it to notify that it is done, then close.
-     */
-    public static void main(String args[]) {
-        org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
-
-        if (args.length < 3 || args.length > 5) {
-            System.out.println("Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");
-            System.exit(1);
-        }
         
-        System.out.println("Crawler starting" + args[1]);
-        String startUrl = args[0];
-        String envPath = args[1];
-        Integer size = Integer.valueOf(args[2]);
-        Integer count = args.length == 4 ? Integer.valueOf(args[3]) : 100;
-        
-        StorageInterface db = StorageFactory.getDatabaseInstance(envPath);
-        
-        Crawler crawler = new Crawler(startUrl, db, size, count);
-        
-        System.out.println("Starting crawl of " + count + " documents, starting at " + startUrl);
-        crawler.start();
-        
-        while(!crawler.isDone()){
-            int abc = 0;
-            try {
-
-                Thread.sleep(10);
-//                System.out.println(crawler.getFreeWorkerSize() + " :" + crawler.queue.size());
-                if(crawler.getFreeWorkerSize() == Crawler.NUM_WORKERS && crawler.queue.size()==0)
-                {
-                    System.out.println("BREAKING");
-                    break;
-                }
-                if(crawler.queue.size() == 0){
-
-                    continue;
-                }
-
-                while(crawler.getFreeWorkerSize() == 0){
-//                    System.out.println("NO free workers");
-
-                    try{Thread.sleep(10);}catch(Exception e){}
-                }
-                
-                CrawlWorker worker ;
-
-                try{
-                    worker = crawler.workerList.get(crawler.freeWorkerIndices.poll());
-
-                }
-                catch(Exception e){
-                    System.out.println(crawler.freeWorkerIndices.size());
-                    continue;
-                }
-
-                CrawlTask task = crawler.queue.poll();
-                    
-                if(crawler.currentRunningLinks.contains(task.raw)){
-                    crawler.currentRunningLinks.remove(task.raw);
-                    continue;
-                }
-
-                URLInfo urlInfo = new URLInfo(task.host, task.port, task.path);
-//                urlInfo = new URLInfo(task.raw);
-                
-                boolean flag = true;
-                if(!crawler.isOKtoParse(urlInfo, task.protocol, crawler.pIdxCrawl.get(task.raw))){
-//                    System.out.println("FALSE: " + task.host+"/" + task.path);
-                    flag = false;
-                }
-                
-                if(flag){
-                    worker.isFree = false;
-                    crawler.currentRunningLinks.add(task.raw);
-                    worker.setTask(task);
-                    Thread t = new Thread(worker);
-                    t.start();
-                }    
-            }             
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-            
-        // TODO: final shutdown
-        System.out.println("Crawling Done - waiting for current requests to finish");
-        while(crawler.getFreeWorkerSize() != Crawler.NUM_WORKERS){     
-            int cnt = 0;
-            for(CrawlWorker w: crawler.workerList)
-                if( w.isFree) cnt+=1;
-            System.out.println("NOT EXITING: " + crawler.freeWorkerIndices.size() +"::" + cnt);
-            
-            try{
-                Thread.sleep(100);
-            }
-            catch(InterruptedException e){}
-
-        }
-        
-        //Close the databases so that they autoSave
-        StorageFactory.getDatabaseInstance(envPath).close();
-        System.out.println("Done crawling!");
-    }
-    
     //get crawler timestamp
     public Long getStartTime(){
         return startTime;
+    }
+    
+    public int getCnt(){
+        return count;
     }
 }

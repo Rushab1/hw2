@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 
 import static spark.Spark.*;
 
+import edu.upenn.cis.cis455.crawler.handlers.CreateChannelHandler;
 import edu.upenn.cis.cis455.crawler.handlers.IndexHandler;
 import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
 import edu.upenn.cis.cis455.storage.StorageFactory;
@@ -14,6 +15,8 @@ import edu.upenn.cis.cis455.crawler.handlers.LoginHandler;
 import edu.upenn.cis.cis455.crawler.handlers.LogoutHandler;
 import edu.upenn.cis.cis455.crawler.handlers.LookupHandler;
 import edu.upenn.cis.cis455.crawler.handlers.RegisterHandler;
+import edu.upenn.cis.cis455.crawler.handlers.ShowHandler;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -63,8 +66,12 @@ public class WebInterface {
                                 return resp;
                                 }
                                 );
-                                
+               
         get("/lookup", new LookupHandler(database));
+        
+        get("/create/*", "GET", new CreateChannelHandler(database));
+        
+        get("/show", "GET", new ShowHandler(database));
         awaitInitialization();
     }
 }

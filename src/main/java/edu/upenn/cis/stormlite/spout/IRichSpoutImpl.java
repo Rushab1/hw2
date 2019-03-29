@@ -7,17 +7,23 @@ import java.util.Map;
 import java.util.Queue;
 
 import edu.upenn.cis.cis455.crawler.CrawlTask;
+import edu.upenn.cis.cis455.crawler.Crawler;
+import edu.upenn.cis.cis455.crawler.SingletonCrawler;
 import edu.upenn.cis.stormlite.OutputFieldsDeclarer;
 import edu.upenn.cis.stormlite.TopologyContext;
 import edu.upenn.cis.stormlite.bolt.OutputCollector;
 import edu.upenn.cis.stormlite.routers.IStreamRouter;
+import edu.upenn.cis.stormlite.tuple.Fields;
+import edu.upenn.cis.stormlite.tuple.Values;
 
 public class IRichSpoutImpl implements IRichSpout{
-    IStreamRouter router;
-    TopologyContext topo;
     SpoutOutputCollector collector;
+    Crawler crawler;
     
-    Queue <CrawlTask> queue = new LinkedList<>();
+    public IRichSpoutImpl(){
+        crawler = SingletonCrawler.getInstance();
+    }
+
     
   	@Override
 	public String getExecutorId() {
@@ -26,27 +32,29 @@ public class IRichSpoutImpl implements IRichSpout{
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-	    declarer.declare(new tupl);
+	    declarer.declare(new Fields("url"));
 	}
 
 	@Override
 	public void setRouter(IStreamRouter router) {
-	    this.router = router;
+	    this.collector.setRouter(router);
 	}
 
 	@Override
 	public void open(Map<String, String> config, TopologyContext topo, SpoutOutputCollector collector) {
-	    this.topo = topo;
 	    this.collector = collector;
 	}
 
 	@Override
 	public void nextTuple(){
-	    ArrayList <Object> tuple = new ArrayList<>();
-	    
-	    if(queue.size() > 0)
-	       tuple.add(queue.poll());
-	       collector.emit( tuple);
+	    System.err.println("Buffer Size: " + SingletonCrawler.getbufferSize() + ":" + SingletonCrawler.getInstance().queue.size() + ":" + crawler.getCnt());
+	    if(crawler.queue.size() > 0){
+	       collector.emit( new Values<>(crawler.queue.poll()));
+	       SingletonCrawler.incBufferSize();
+        }
+
+	    try{Thread.sleep(100);}
+	    catch(InterruptedException e){}
 	}
 
 	@Override

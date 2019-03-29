@@ -31,5 +31,4 @@ interface XPathEngine {
  	 * @return bit vector of matches to XPaths
 	 */
 	boolean[] evaluateEvent(OccurrenceEvent event);
-
 }

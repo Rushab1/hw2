@@ -38,9 +38,10 @@ public class SpoutOutputCollector implements IOutputCollector  {
 		this.context = context;
 	}
 	
-	@Override
+    @Override
 	public void setRouter(IStreamRouter router) {
-		this.routers.add(router);
+		if (!routers.contains(router))
+			this.routers.add(router);
 	}
 
 	/**
